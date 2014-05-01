@@ -22,7 +22,7 @@ static void new_screen(int const bytes_size)
 		LEDS_WIDTH_T byte = Wire.read();
 #endif
 		// loop to print whole byte
-		for(uint8_t x = 0; x < LEDS_HEIGHT / 2; x++, p++) {
+		for(uint8_t x = 0; x < LEDS_HEIGHT / TOTAL_CARDS; x++, p++) {
 
 			bool const on = (byte >> x) & 0x1;
 			if(on) {
@@ -35,7 +35,7 @@ static void new_screen(int const bytes_size)
 				p->b = COLOR_OFF_B;
 			}
 		}
-		line = (line + 1) % (LEDS_HEIGHT / 2);
+		line = (line + 1) % (LEDS_HEIGHT / TOTAL_CARDS);
 	}
 
 	// only flip at end of loop
@@ -47,7 +47,7 @@ static void new_screen(int const bytes_size)
 #include <Colorduino.h>
 void setup()
 {
-	Wire.begin(I2C_ADRESS);
+	Wire.begin(CARD_NUMBER);
 	Wire.onReceive(new_screen);
 	Colorduino.Init();
 }

@@ -4,7 +4,8 @@
 // to avoid many memory copy, we use two arrays and just update current
 static uint8_t current = 0;
 static LEDS_HEIGHT_T arrays[2][LEDS_WIDTH] = {{
-	0x0000, 0x2744, 0x0244, 0x2244, 0x227C, 0x2244, 0x2744, 0x0000
+	0x00000000, 0x00274400, 0x00024400, 0x00224400,
+	0x00227C00, 0x00224400, 0x00274400, 0x00000000
 }};
 
 /// end of configuration
@@ -45,7 +46,8 @@ static uint8_t living_neigh(uint8_t const x, uint8_t const y)
 
 			// some basic checks to handle corner cases
 			if(i + x >= 0 && j + y >= 0 &&
-				i + x < LEDS_WIDTH && j + y < LEDS_HEIGHT)
+				i + x < (signed) LEDS_WIDTH &&
+				j + y < (signed) LEDS_HEIGHT)
 				count += get_pixel(i + x, j + y);
 		}
 	}
@@ -80,15 +82,18 @@ static void evolve(void)
 
 // send new screen to salve
 #include <Wire.h>
-static void update_slave(void)
+static void update_slaves(void)
 {
-	// create an array of byte
-	uint8_t array[LEDS_WIDTH];
-	for(uint8_t x = 0; x < LEDS_WIDTH; x++) {
+	// create an array of byte for every cards
+	uint8_t array[TOTAL_CARDS - 1][LEDS_WIDTH];
+	for(uint8_t i = 1; i < TOTAL_CARDS; i++) {
+		for(uint8_t x = 0; x < LEDS_WIDTH; x++) {
 
-		// get only needed part
-		uint8_t const byte = arrays[current][x] >> (LEDS_HEIGHT / 2);
-		array[x] = byte;
+			// get only needed part
+			uint8_t const byte = arrays[current][x] >>
+				(i * LEDS_HEIGHT / TOTAL_CARDS);
+			array[i - 1][x] = byte;
+		}
 	}
 
 #ifdef DEBUG
@@ -100,9 +105,11 @@ static void update_slave(void)
 #endif
 
 	// send the data
-	Wire.beginTransmission(I2C_ADRESS);
-	Wire.write(array, LEDS_WIDTH);
-	Wire.endTransmission();
+	for(uint8_t i = 1; i < TOTAL_CARDS; ++i) {
+		Wire.beginTransmission(i);
+		Wire.write(array[i - 1], LEDS_WIDTH);
+		Wire.endTransmission();
+	}
 }
 
 // display the current state of the array
@@ -112,7 +119,7 @@ static void display(void)
 	PixelRGB *p = Colorduino.GetPixel(0, 0);
 
 	for(uint8_t x = 0; x < LEDS_WIDTH; x++) {
-		for(uint8_t y = 0; y < LEDS_HEIGHT / 2; y++, p++) {
+		for(uint8_t y = 0; y < LEDS_HEIGHT / TOTAL_CARDS; y++, p++) {
 
 			// set on only if pixel is on
 			if(get_pixel(x, y)) {
@@ -145,7 +152,7 @@ void setup(void)
 	// wait for slave to start
 	delay(INITIAL_DELAY);
 	display();
-	update_slave();
+	update_slaves();
 	delay(TICK_MS);
 }
 
@@ -164,7 +171,7 @@ void loop(void)
 #endif
 
 	evolve();
-	update_slave();
+	update_slaves();
 	display();
 
 	delay(TICK_MS);
