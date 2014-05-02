@@ -18,7 +18,7 @@
 // delay for slaves to wakeup
 #define INITIAL_DELAY	100
 // delay between every iteration
-#define TICK_MS		10000
+#define TICK_MS		1000
 
 // color of living pixel
 #define COLOR_ON_R	255

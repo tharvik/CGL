@@ -11,24 +11,17 @@ static LEDS_HEIGHT_T arrays[2][LEDS_WIDTH] = {{
 /// end of configuration
 
 // return state of the given pixel
-static bool get_pixel(LEDS_WIDTH_T const x, LEDS_HEIGHT_T const y)
+static bool get_pixel(uint8_t const x, uint8_t const y)
 {
-	return arrays[current][x] & (0x1 << y);
+	return bitRead(arrays[current][x], y);
 }
 
 // set the given pixel to the given state in the other array
-static void set_pixel(LEDS_WIDTH_T const x, LEDS_HEIGHT_T const y,
+static void set_pixel(uint8_t const x, uint8_t const y,
 		bool const state)
 {
 	uint8_t const index = (current ? 0 : 1);
-	LEDS_HEIGHT_T byte = arrays[index][x];
-
-	if(state)
-		byte = byte | (1 << y);
-	else
-		byte = byte & ~(1 << y);
-
-	arrays[index][x] = byte;
+	bitWrite(arrays[index][x], y, state);
 }
 
 // return the number of live neighbors of the given cell
@@ -97,9 +90,13 @@ static void update_slaves(void)
 	}
 
 #ifdef DEBUG
-	for(uint8_t x = 0; x < LEDS_WIDTH; x++) {
-		Serial.print(array[x]);
-		Serial.println();
+	for(uint8_t i = 0; i < TOTAL_CARDS - 1; i++) {
+		Serial.print("Slave ");
+		Serial.println(i);
+		for(uint8_t x = 0; x < LEDS_WIDTH; x++) {
+			Serial.print(array[i][x]);
+			Serial.println();
+		}
 	}
 	Serial.println("--");
 #endif
