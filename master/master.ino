@@ -82,9 +82,11 @@ static void update_slaves(void)
 	for(uint8_t i = 1; i < TOTAL_CARDS; i++) {
 		for(uint8_t x = 0; x < LEDS_WIDTH; x++) {
 
-			// get only needed part
-			uint8_t const byte = arrays[current][x] >>
-				(i * LEDS_HEIGHT / TOTAL_CARDS);
+			uint8_t byte = 0;
+			for(uint8_t y = 0; y < LEDS_WIDTH; y++) {
+
+				bitWrite(byte, y, get_pixel(x, y + i * 8));
+			}
 			array[i - 1][x] = byte;
 		}
 	}
@@ -92,7 +94,7 @@ static void update_slaves(void)
 #ifdef DEBUG
 	for(uint8_t i = 0; i < TOTAL_CARDS - 1; i++) {
 		Serial.print("Slave ");
-		Serial.println(i);
+		Serial.println(i + 1);
 		for(uint8_t x = 0; x < LEDS_WIDTH; x++) {
 			Serial.print(array[i][x]);
 			Serial.println();

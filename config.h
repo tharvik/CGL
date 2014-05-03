@@ -12,11 +12,11 @@
 // = TOTAL_CARDS * 8
 #define LEDS_HEIGHT_T	uint32_t
 
-#define LEDS_WIDTH	sizeof(LEDS_WIDTH_T)	* 8
-#define LEDS_HEIGHT	sizeof(LEDS_HEIGHT_T)	* 8
+#define LEDS_WIDTH	8
+#define LEDS_HEIGHT	TOTAL_CARDS * 8
 
 // delay for slaves to wakeup
-#define INITIAL_DELAY	100
+#define INITIAL_DELAY	1000
 // delay between every iteration
 #define TICK_MS		1000
 
